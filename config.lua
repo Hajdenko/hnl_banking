@@ -19,7 +19,7 @@ HnL = {
 
 		-- QBCore = exports['qb-core']:GetSharedObject() -- QBCore
         -- QBCore.Functions.GetPlayer(src)
-	end
+	end,
 
 	-- [ Framework ] --
 

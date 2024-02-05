@@ -32,6 +32,51 @@ function ShowNotification(message, notifyType)
     TriggerClientEvent('ox_lib:notify', source, data)
 end
 
+-- bank functions
+HnL_banking = {
+    CreatePeds = function()
+        for i = 1, #HnL.NPCs do
+            local model = HnL.NPCs[i].Model
+            local coords = HnL.NPCs[i].Position
+            spawnedPeds[i] = CreatePed(0, model, coords.x, coords.y, coords.z, coords.w, true, true)
+            netIdTable[i] = NetworkGetNetworkIdFromEntity(spawnedPeds[i])
+            while not DoesEntityExist(spawnedPeds[i]) do Wait(50) end
+        end
+
+        Wait(100)
+        TriggerClientEvent('hnl_banking:pedHandler', -1, netIdTable)
+    end,
+    DeletePeds = function()
+        for i = 1, #spawnedPeds do
+            DeleteEntity(spawnedPeds[i])
+            spawnedPeds[i] = nil
+        end
+    end,
+    Withdraw = function(amount, xPlayer, name)
+        xPlayer.addAccountMoney('money', amount)
+        xPlayer.removeAccountMoney('bank', amount)
+    end,
+    Deposit = function(amount, xPlayer)
+        xPlayer.removeAccountMoney('money', amount)
+        xPlayer.addAccountMoney('bank', amount)
+    end,
+    LogTransaction = function(playerId, label, logType, amount, bankMoney)
+        if playerId == nil then
+            return
+        end
+
+        if label == nil then
+            label = logType
+        end
+
+        local xPlayer = HnL.GetPlayer(playerId)
+        local identifier = xPlayer.getIdentifier()
+    
+        MySQL.insert('INSERT INTO banking (identifier, label, type, amount, time, balance) VALUES (?, ?, ?, ?, ?, ?)',
+            {identifier,label,logType,amount, os.time() * 1000, bankMoney})
+    end   
+}
+
 -- Resource starting
 AddEventHandler('onResourceStart', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
@@ -60,7 +105,7 @@ AddEventHandler('hnl_banking:doingType', function(typ, input)
 
     if (typ == nil) or not typ then print(GetPlayerName(source).." is a cheater (triggered an event, but type was nil)") return end
     if typ ~= 'withdraw' or typ ~= 'deposit' then print(GetPlayerName(source).." is a cheater (triggered an event, but type was not 'withdraw' or 'deposit')") return end
-    local xPlayer = HnL.GetPlayerFromId(source)
+    local xPlayer = HnL.GetPlayer(source)
     local identifier = xPlayer.getIdentifier()
     local money = xPlayer.getAccount('money').money
     local bankMoney = xPlayer.getAccount('bank').money
@@ -90,7 +135,7 @@ end)
 
 -- register callbacks
 lib.callback.register("hnl_banking:getPlayerData", function(source)
-    local xPlayer = HnL.GetPlayerFromId(source)
+    local xPlayer = HnL.GetPlayer(source)
     local identifier = xPlayer.getIdentifier()
     local weekAgo = (os.time() - 604800) * 1000
     local transactionHistory = MySQL.Sync.fetchAll(
@@ -130,7 +175,7 @@ function logTransaction(targetSource,label, key,amount)
         label = "UNKNOWN LABEL"
     end
 
-    local xPlayer = HnL.GetPlayerFromId(tonumber(targetSource))
+    local xPlayer = HnL.GetPlayer(tonumber(targetSource))
 
     if xPlayer ~= nil then
         local bankCurrentMoney = xPlayer.getAccount('bank').money
@@ -145,48 +190,3 @@ RegisterServerEvent('hnl_banking:logTransaction')
 AddEventHandler('hnl_banking:logTransaction', function(label,key,amount)
     logTransaction(source,label,key,amount)
 end)
-
--- bank functions
-HnL_banking = {
-    CreatePeds = function()
-        for i = 1, #HnL.NPCs do
-            local model = HnL.NPCs[i].Model
-            local coords = HnL.NPCs[i].Position
-            spawnedPeds[i] = CreatePed(0, model, coords.x, coords.y, coords.z, coords.w, true, true)
-            netIdTable[i] = NetworkGetNetworkIdFromEntity(spawnedPeds[i])
-            while not DoesEntityExist(spawnedPeds[i]) do Wait(50) end
-        end
-
-        Wait(100)
-        TriggerClientEvent('hnl_banking:pedHandler', -1, netIdTable)
-    end,
-    DeletePeds = function()
-        for i = 1, #spawnedPeds do
-            DeleteEntity(spawnedPeds[i])
-            spawnedPeds[i] = nil
-        end
-    end,
-    Withdraw = function(amount, xPlayer, name)
-        xPlayer.addAccountMoney('money', amount)
-        xPlayer.removeAccountMoney('bank', amount)
-    end,
-    Deposit = function(amount, xPlayer)
-        xPlayer.removeAccountMoney('money', amount)
-        xPlayer.addAccountMoney('bank', amount)
-    end,
-    LogTransaction = function(playerId, label, logType, amount, bankMoney)
-        if playerId == nil then
-            return
-        end
-
-        if label == nil then
-            label = logType
-        end
-
-        local xPlayer = HnL.GetPlayerFromId(playerId)
-        local identifier = xPlayer.getIdentifier()
-    
-        MySQL.insert('INSERT INTO banking (identifier, label, type, amount, time, balance) VALUES (?, ?, ?, ?, ?, ?)',
-            {identifier,label,logType,amount, os.time() * 1000, bankMoney})
-    end   
-}

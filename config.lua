@@ -13,13 +13,10 @@ HnL = {
 		PlayerLogout = 'esx:onPlayerLogout',
 		PlayerDeath = 'esx:onPlayerDeath',
 	},
-	GetPlayerFromId = function(src) -- make your own function for your server
-        ESX = exports["es_extended"]:getSharedObject() -- esx default
-        ESX.GetPlayerFromId(src)
-
-		-- QBCore = exports['qb-core']:GetSharedObject() -- QBCore
-        -- QBCore.Functions.GetPlayer(src)
-	end,
+    	GetPlayer = function(source)
+        	ESX = exports["es_extended"]:getSharedObject()
+        	return ESX.GetPlayerFromId(source)
+    	end,
 
 	-- [ Framework ] --
 

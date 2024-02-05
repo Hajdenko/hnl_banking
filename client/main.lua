@@ -111,7 +111,7 @@ function HnL_banking:GetData()
 
                 for i = 1, #HnL.BankLocs do
                     local bankDistance = #(data.coord - HnL.BankLocs[i].Position.xyz)
-                    if bankDistance <= 0.7 then
+                    if bankDistance <= 1.0 then
                         bankPoints[#bankPoints+1] = HnL.BankLocs[i].Position.xyz
                     end
                     if bankDistance <= 7 then
@@ -171,6 +171,7 @@ end
 
 if lib.getOpenContextMenu() == 'bank:open' or lib.getOpenContextMenu() == 'bank:deposit' or lib.getOpenContextMenu() == 'bank:withdraw' then
     lib.hideContext()
+    ClearPedTasksImmediately(ped)
     ShowNotification(Locale.Context.CloseContextOnRestart, 'warning')
 end
 local wdrw = 'withdraw'
@@ -193,7 +194,6 @@ function HnL_banking:RegisterContext(data, atm)
             icon = Locale.Context.WithdrawIcon,
             iconColor = Locale.Context.WithdrawIconColor,
             onSelect = function()
-                HideTextUI()
                 DebugPrint('selected withdraw')
                 local input = lib.inputDialog(Locale.Context.Withdraw, {
                     {type = 'number', label = Locale.Context.WithdrawHowMuch, description = Locale.Context.OnlyNumbers, required = true, min = 1},
@@ -221,7 +221,6 @@ function HnL_banking:RegisterContext(data, atm)
             icon = Locale.Context.DepositIcon,
             iconColor = Locale.Context.DepositIconColor,
             onSelect = function()
-                HideTextUI()
                 DebugPrint('selected deposit')
                 local input = lib.inputDialog(Locale.Context.Deposit, {
                     {type = 'number', label = Locale.Context.DepositHowMuch, description = Locale.Context.OnlyNumbers, required = true, min = 1},
@@ -244,7 +243,6 @@ function HnL_banking:RegisterContext(data, atm)
             icon = Locale.Context.WithdrawIcon,
             iconColor = Locale.Context.WithdrawIconColor,
             onSelect = function()
-                HideTextUI()
                 DebugPrint('selected fast withdraw ' .. v.hmch)
                 TriggerServerEvent('hnl_banking:doingType', wdrw, v.hmch)
                 lib.callback('hnl_banking:getPlayerData', false, function(data)
@@ -261,7 +259,6 @@ function HnL_banking:RegisterContext(data, atm)
             icon = Locale.Context.DepositIcon,
             iconColor = Locale.Context.DepositIconColor,
             onSelect = function()
-                HideTextUI()
                 DebugPrint('selected fast deposit ' .. k.hmch)
                 TriggerServerEvent('hnl_banking:doingType', dpst, k.hmch)
                 lib.callback('hnl_banking:getPlayerData', false, function(data)
@@ -427,7 +424,6 @@ function HnL_banking:RegisterContext(data, atm)
                     icon = Locale.Context.WithdrawIcon,
 					iconColor = Locale.Context.WithdrawIconColor,
                     onSelect = function()
-                        HideTextUI()
                         DebugPrint('selected withdraw')
                         local input = lib.inputDialog(wdrw, {
                             {type = 'number', label = 'How much do you want to withdraw?', description = 'Only numbers.', required = true, min = 1},
@@ -458,7 +454,12 @@ function HnL_banking:TextUi(state, atm)
     if not state then
         return HideTextUI()
     end
-    ShowTextUI(Locale.TextUi.text, Locale.TextUi.icon)
+    CreateThread(function()
+        while contextActive do
+            ShowTextUI(Locale.TextUi.text, Locale.TextUi.icon)
+            Wait(25)
+        end
+    end)
     CreateThread(function()
         while contextActive do
             if IsControlJustReleased(0, 38) then

@@ -72,7 +72,7 @@ HnL_banking = {
         local xPlayer = HnL.GetPlayer(playerId)
         local identifier = xPlayer.getIdentifier()
     
-        MySQL.insert('INSERT INTO banking (identifier, label, type, amount, time, balance) VALUES (?, ?, ?, ?, ?, ?)',
+        MySQL.insert('INSERT INTO hnl_banking (identifier, label, type, amount, time, balance) VALUES (?, ?, ?, ?, ?, ?)',
             {identifier,label,logType,amount, os.time() * 1000, bankMoney})
     end   
 }
@@ -82,7 +82,7 @@ AddEventHandler('onResourceStart', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
     if HnL.EnablePeds then HnL_banking.CreatePeds() end
     local twoMonthMs = (os.time() - 5259487) * 1000
-    MySQL.Sync.fetchScalar('DELETE FROM banking WHERE time < ? ', {twoMonthMs})
+    MySQL.Sync.fetchScalar('DELETE FROM hnl_banking WHERE time < ? ', {twoMonthMs})
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)
@@ -139,7 +139,7 @@ lib.callback.register("hnl_banking:getPlayerData", function(source)
     local identifier = xPlayer.getIdentifier()
     local weekAgo = (os.time() - 604800) * 1000
     local transactionHistory = MySQL.Sync.fetchAll(
-        'SELECT * FROM banking WHERE identifier = ? AND time > ? ORDER BY time DESC LIMIT 10', {identifier, weekAgo})
+        'SELECT * FROM hnl_banking WHERE identifier = ? AND time > ? ORDER BY time DESC LIMIT 10', {identifier, weekAgo})
     local playerData = {
         playerName = xPlayer.getName(),
         money = xPlayer.getAccount('money').money,

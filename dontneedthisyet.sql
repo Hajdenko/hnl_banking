@@ -1,4 +1,4 @@
--- dont use this, this is for the next version
+-- not everything is needed, but instert it into your database just in case. Thanks. This will be highly needed in the next update.
 
 CREATE TABLE IF NOT EXISTS `hnl_banking` (
   `identifier` varchar(46) DEFAULT NULL,

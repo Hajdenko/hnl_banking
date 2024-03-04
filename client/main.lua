@@ -426,7 +426,7 @@ function HnL_banking:RegisterContext(data, atm)
                     onSelect = function()
                         DebugPrint('selected withdraw')
                         local input = lib.inputDialog(wdrw, {
-                            {type = 'number', label = 'How much do you want to withdraw?', description = 'Only numbers.', required = true, min = 1},
+                            {type = 'number', label = Locale.Context.WithdrawHowMuch, description = Locale.Context.OnlyNumbers, required = true, min = 1},
                         })
                         if input ~= nil then
                             TriggerServerEvent('hnl_banking:doingType', wdrw, tonumber(input[1]))

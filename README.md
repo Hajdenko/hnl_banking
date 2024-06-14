@@ -1,3 +1,6 @@
+There are better banking scripts out there.
+
+
 # hnl_banking
 Banking System made with ox library (ox_lib)
 
